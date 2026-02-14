@@ -2,40 +2,134 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
+#include <wchar.h>
+#include <locale.h>
+
+static int check_unicode_confusions(const char *command) {
+	int confusions = 0;
+	setlocale(LC_ALL, "");
+	const unsigned char *p = (const unsigned char*)command;
+	size_t i = 0;
+
+	while(*p) {
+        if (*p >= 0x80) {
+            printf("argus: NON-ASCII char at position%zu: 0x%02X\n", i, *p);
+            confusions++;
+        }
+        p++;
+        i++;
+    }
+    if (confusions > 0) {
+        printf("argus: %d suspicious/confusing Unicode character(s) detected\n", confusions);
+    }
+    return confusions;
+}
 
 static int diff_checks(const char *a, const char *b){
-int diff = 0 ;
-size_t i= 0;
+    int diff = 0 ;
+    size_t i= 0;
 
-while (a[i] && b[i]) {
-    if (a[i] != b[i]) {
-        printf("positon %zu: '%c' (0x%02X) vs '%c' (0x%02X)\n", i, a[i], (unsigned char)a[i], b[i], (unsigned char)b[i]);
+    while (a[i] && b[i]) {
+        if (a[i] != b[i]) {
+            printf("positon %zu: '%c' (0x%02X) vs '%c' (0x%02X)\n", i, a[i], (unsigned char)a[i], b[i], (unsigned char)b[i]);
+            diff++;
+        }
+        i++;
+    }
+    if (a[i] || b[i]) {
+        printf("length differs: a=%zu b=%zu\n", strlen(a), strlen(b));
         diff++;
     }
-    i++;
+    return diff;
 }
-if (a[i] || b[i]) {
-    printf("length differs: a=%zu b=%zu\n", strlen(a), strlen(b));
-    diff++;
+
+static int inspect_command(const char *command) {
+    int rc = 0;
+    if (strstr(command, "curl http://")) {
+        fprintf(stderr, "argus: BLOCKED - insecure http transport\n");
+        return 3;
+    }
+    
+    if (strstr(command, "| bash") || strstr(command, "| sh")) {
+        fprintf(stderr, "argus: WARNING - pipe-to-shell detected (\"%s\")\n", command);
+        return 2;
+    }
+
+    int unicode_confusions = check_unicode_confusions(command);
+    if (unicode_confusions) {
+        fprintf(stderr, "argus: BLOCKED - potential homograph / confusable attack\n");
+        return 3;
+    }
+
+    return rc;
 }
-return diff;
+
+static void shell_init_format(const char *shell) {
+    if (!shell) shell = "bash";
+
+    if (strcmp(shell, "bash") == 0) {
+        puts(
+            "trap 'cmd=$(history 1 | sed \"s/^ *[0-9]\\+ *//\"); "
+            "argus check -- \"$cmd\" >/tmp/argus_out 2>&1; "
+            "rc=$?; "
+            "if [ $rc -eq 3 ]; then "
+                "cat /tmp/argus_out >&2; kill -SIGINT $$; "
+            "elif [ $rc -eq 2 ]; then "
+                "cat /tmp/argus_out >&2; "
+            "fi' DEBUG"
+        );
+    } else if (strcmp(shell, "zsh") == 0) {
+        puts(
+            "preexec() { "
+            "argus check -- \"$1\" >/tmp/argus_out 2>&1; "
+            "rc=$?; "
+            "if [[ $rc -eq 3 ]]; then "
+                "cat /tmp/argus_out >&2; kill -TERM $$; exit 3; "
+            "elif [[ $rc -eq 2 ]]; then "
+                "cat /tmp/argus_out >&2; "
+            "fi; "
+            "}"
+        );
+    } else if (strcmp(shell, "fish") == 0) {
+        puts(
+            "function argus_preexec --on-event fish_preexec; "
+            "argus check -- \"$argv[1]\" >/tmp/argus_out 2>&1; "
+            "set rc $status; "
+            "if test $rc -eq 3; "
+                "cat /tmp/argus_out >&2; "
+            "end; "
+            "end"
+        );
+    } else {
+        fprintf(stderr, "Unsupported shell: %s\n", shell);
+    }
 }
 
 int main(int argc, char *argv[]) {
-    printf("Hello From Argus");
-    if (argc < 3) {
-        fprintf(stderr, "Usage: %s <string !> <string 2>\n", argv[0]);
+    if (argc < 2) {
+        fprintf(stderr, "Usage:\n" 
+                " %s diff <string 1> <string 2>\n"
+                " %s check -- \"<command>\"\n"
+                " %s init --shell <bash|zsh|fish>\n", argv[0], argv[0], argv[0]);
         return 1;
     }
 
-    printf("Argus diff - first watch\n");
-    int diffs = diff_checks(argv[1], argv[2]);
-    if (diffs == 0) {
-        printf("Good to go");
-        return 0;
-    } else {
-        printf("%d diffrence(s) found.\n", diffs);
-        return 2;
+    if (strcmp(argv[1], "diff") == 0 && argc >= 4) {
+        return diff_checks(argv[2], argv[3]) ? 2 : 0;
     }
+
+    if (strcmp(argv[1], "check") ==0 && argc >= 4 && strcmp(argv[2], "--") == 0) {
+        return inspect_command(argv[3]);
+    }
+
+    if (strcmp(argv[1], "init") == 0) {
+        const char *shell = NULL;
+        for (int i =2; i < argc -1; ++i)
+            if (strcmp(argv[i], "--shell") == 0) shell = argv[i + 1];
+        shell_init_format(shell);
+        return 0;
+    }
+
+    fprintf(stderr, "argus: unknown or incomplete command\n");
+    return 1;
 }
