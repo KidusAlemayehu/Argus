@@ -25,7 +25,7 @@ It detects hidden threats — from Unicode confusables and terminal injection to
 ### Build from source
 
 ```bash
-git clone https://github.com/<your-username>/argus.git
+git clone https://github.com/KidusAlemayehu/argus.git
 cd argus
 make
 ```
