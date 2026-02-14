@@ -7,6 +7,16 @@ It detects hidden threats — from Unicode confusables and terminal injection to
 
 ---
 
+## Inspiration
+
+Argus is inspired by the ideas behind [**sheeki03/tirith**](https://github.com/sheeki03/tirith) — an exceptional Rust-based security tool that protects terminals from Unicode, ANSI, and pipe-to-shell attacks.
+
+The project began after reading [this tweet](https://x.com/sheeki03/status/2018382483465867444?s=20) by **@sheeki03**, which highlights how malicious domains can impersonate trusted URLs using Cyrillic or other Unicode lookalikes.
+
+Argus re-imagines that same defense in pure C — a **lightweight, dependency-free terminal sentinel** that operates fully offline while preserving the same real-time awareness and protection.
+
+---
+
 ## Features
 
 | Category                             | Description                                                                                        |                  |      |
@@ -141,6 +151,6 @@ Everything runs **locally** — no network calls, no telemetry, no background da
 ## License
 
 MIT License
-2026 Argus Authors
+2026 Argus
 
 ---
