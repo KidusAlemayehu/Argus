@@ -127,11 +127,11 @@ Everything runs **locally** — no network calls, no telemetry, no background da
 
 ## Example Commands
 
-| Command                      | Description                           |        |                                          |
-| ---------------------------- | ------------------------------------- | ------ | ---------------------------------------- |
-| `argus diff <a> <b>`         | Manual byte-level comparison.         |        |                                          |
-| `argus check -- "<command>"` | Analyze a command without running it. |        |                                          |
-| `argus init --shell <bash    | zsh                                   | fish>` | Print activation snippet for your shell. |
+| Command                                   | Description                                           |
+| ----------------------------------------- | ----------------------------------------------------- |
+| `argus diff <a> <b>`                      | Manual byte-level comparison.                         | 
+| `argus check -- "<command>"`              | Analyze a command without running it.                 |
+| `argus init --shell <bash , zsh or fish>` | Print activation snippet for your shell.              |
 
 ---
 
