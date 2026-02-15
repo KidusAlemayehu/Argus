@@ -25,6 +25,52 @@ static int check_unicode_confusions(const char *command) {
     return confusions;
 }
 
+static int ansi_esc_seq_and_invisibles_check(const char *command) {
+    const unsigned char *p = (const unsigned char *)command;
+
+    while (*p) {
+        if (*p == 0x1B) {
+            fprintf(stderr, "argus: BLOCKED - ANSI escape sequence detected at byte 0x1B\n");
+            return 3;
+        }
+
+        // Check for string-escaped ANSI representations
+        if (*p == '\\') {
+            if (strncmp((const char *)p, "\\x1b", 4) == 0 || 
+                strncmp((const char *)p, "\\x1B", 4) == 0 ||
+                strncmp((const char *)p, "\\033", 4) == 0 ||
+                strncmp((const char *)p, "\\e", 2) == 0) {
+        
+                fprintf(stderr, "argus: BLOCKED - Escaped ANSI sequence string detected\n");
+                return 3;
+            }
+        }
+
+        if ((*p == 'U' || *p == 'u') && *(p+1) == '+') {
+            fprintf(stderr, "argus: BLOCKED - literal Unicode hex string detected\n");
+            return 3;
+        }
+
+        if (*p == '\\' && (*(p+1) == 'u' || *(p+1) == 'U')) {
+             fprintf(stderr, "argus: BLOCKED - explicit escape sequence detected\n");
+             return 3;
+        }
+
+        if ((*p & 0xF0) == 0xE0){
+            if (p[1] && p[2]) {
+                uint32_t cp = ((p[0] & 0x0F) << 12) | ((p[1] & 0x3F) << 6) | (p[2] & 0x3F);
+                if ((cp >= 0x200B && cp <= 0x200F) || (cp >= 0x202A && cp <= 0x202E) || (cp == 0xFEFF)) {
+                    fprintf(stderr, "argus: BLOCKED - invisible or Bidi char U+%04X detected\n", cp);
+                    return 3;
+                }
+                p += 2;
+            }
+        }
+        p++;
+    }
+    return 0;
+}
+
 static int diff_checks(const char *a, const char *b){
     int diff = 0 ;
     size_t i= 0;
@@ -61,6 +107,10 @@ static int inspect_command(const char *command) {
         return 3;
     }
 
+    int ansi_detected = ansi_esc_seq_and_invisibles_check(command);
+    if (ansi_detected) {
+        return 3;
+    }
     return rc;
 }
 
