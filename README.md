@@ -21,12 +21,12 @@ Argus re-imagines that same defense in pure C — a **lightweight, dependency-fr
 
 | Category                             | Description                                                                                        |                  |      |
 | ------------------------------------ | -------------------------------------------------------------------------------------------------- | ---------------- | ---- |
-|  **Manual diff checking**          | Compare two strings or URLs byte by byte to reveal hidden differences (`argus diff <a> <b>`).      |                  |      |
-|  **Unicode confusables detection** | Detect Cyrillic/Greek lookalikes (`і`, `о`, `а`) that can disguise malicious domains.              |                  |      |
-|  **Real-time shell protection**    | Hooks directly into your shell (`bash`, `zsh`, `fish`) and inspects each command before execution. |                  |      |
-|  **Pipe-to-shell protection**      | Warns or blocks commands like `curl ...                                                            | bash`or`wget ... | sh`. |
-|  **Insecure transport detection**  | Blocks HTTP-based scripts and insecure downloads.                                                  |                  |      |
-|  **Cross-shell support**          | Works seamlessly in Bash, Zsh, and Fish.                                                           |                  |      |
+|  **Manual diff checking**            | Compare two strings or URLs byte by byte to reveal hidden differences (`argus diff <a> <b>`).      |                  |      |
+|  **Unicode confusables detection**   | Detect Cyrillic/Greek lookalikes (`і`, `о`, `а`) that can disguise malicious domains.              |                  |      |
+|  **Real-time shell protection**      | Hooks directly into your shell (`bash`, `zsh`, `fish`) and inspects each command before execution. |                  |      |
+|  **Pipe-to-shell protection**        | Warns or blocks commands like `curl, `bash`or`wget` or `sh`.                                       |                  |      |
+|  **Insecure transport detection**    | Blocks HTTP-based scripts and insecure downloads.                                                  |                  |      |
+|  **Cross-shell support**             | Works seamlessly in Bash, Zsh, and Fish.                                                           |                  |      |
 
 ---
 
