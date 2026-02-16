@@ -5,30 +5,6 @@
 #include <wchar.h>
 #include <locale.h>
 
-
-typedef enum { RULE_IGNORE, RULE_WARN, RULE_BLOCK } RuleAction;
-
-typedef struct {
-    RuleAction insecure_http;
-    RuleAction pipe_to_Shell;
-    RuleAction unicode_confudable;
-    RuleAction ansi_sequence;
-    char **allowlist;
-    size_t allowlist_count;
-    int fail_closed;
-} ArgusPolicy;
-
-static void load_defualt_policy(ArgusPolicy *p) {
-    p->insecure_http = RULE_BLOCK;
-    p->pipe_to_shell = RULE_WARN;
-    p->unicode_confusable = RULE_BLOCK;
-    p->ansi_sequence = RULE_BLOCK;
-    p->allowlist = NULL;
-    p->allowlist_count = 0;
-    p->fail_closed =0;
-}
-
-
 static int check_unicode_confusions(const char *command) {
 	int confusions = 0;
 	setlocale(LC_ALL, "");
