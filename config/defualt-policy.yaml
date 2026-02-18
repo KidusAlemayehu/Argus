@@ -1,0 +1,14 @@
+version: 1
+
+allowlist:
+  - "http://localhost"
+  - "http://127.0.0.1"
+
+rules:
+  insecure_http: warn
+  pipe_to_shell: block
+  unicode_confusable: block
+  ansi_sequence: block
+
+fail_mode: open
+

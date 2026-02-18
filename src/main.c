@@ -5,6 +5,13 @@
 #include <wchar.h>
 #include <locale.h>
 
+#include "../include/policy.h"
+
+static ArgusPolicy policy;
+static void cleanup_policy(void) {
+	argus_policy_free(&policy);
+}
+
 static int check_unicode_confusions(const char *command) {
 	int confusions = 0;
 	setlocale(LC_ALL, "");
@@ -156,6 +163,9 @@ static void shell_init_format(const char *shell) {
 }
 
 int main(int argc, char *argv[]) {
+	argus_policy_init(&policy);
+	atexit(cleanup_policy);
+	
     if (argc < 2) {
         fprintf(stderr, "Usage:\n" 
                 " %s diff <string 1> <string 2>\n"
