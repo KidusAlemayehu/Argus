@@ -6,7 +6,7 @@
 typedef enum {
     RULE_IGNORE =0,
     RULE_WARN = 1,
-    RULE_BLOCK = 2;
+    RULE_BLOCK = 2
 } RuleAction;
 
 typedef struct {
